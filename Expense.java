@@ -13,6 +13,13 @@ public class Expense {
         this.amount = amount;
     }
 
+    public Expense(int id,LocalDate date, String description, double amount){
+        this.id = id;
+        this.date = date;
+        this.description = description;
+        this.amount = amount;
+    }
+
     public int getID() {
         return id;
     }
