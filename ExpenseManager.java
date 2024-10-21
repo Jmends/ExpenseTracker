@@ -1,8 +1,13 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class ExpenseManager {
@@ -11,10 +16,29 @@ public class ExpenseManager {
 
     public ExpenseManager() {
         expenses = new ArrayList<>();
+        loadExpenses();
     }
 
     public void loadExpenses() {
+        DateTimeFormatter dateformatter = DateTimeFormatter.ofPattern("dd-MM-yy");
+        try(BufferedReader read = new BufferedReader(new FileReader("expenses.txt"))){
+            if(Files.exists(Paths.get(FILE_NAME))){
+                String line;
+                while((line = read.readLine()) != null){
+                    String [] data = line.split(",");
+                    int id = Integer.parseInt(data[0]);
+                    LocalDate date = LocalDate.parse(data[1],dateformatter);
+                    String description = data[2];
+                    double amount = Double.parseDouble(data[3]);
+                    expenses.add(new Expense(id,date, description, amount));
+                    
+                }
 
+            }
+           
+        } catch(IOException e){
+            System.out.println("Error in loading expenses: " + e.getMessage());
+        }
     }
 
     public void saveExpenses() {
@@ -22,9 +46,10 @@ public class ExpenseManager {
             DateTimeFormatter dateformatter = DateTimeFormatter.ofPattern("dd-MM-yy");
             for (Expense expense : expenses) {
                 String formattedDate = expense.getDate().format(dateformatter);
-                write.write(String.format("%d,%s,%s,%.2f\n", expense.getID(), formattedDate, expense.getDescription(),
-                        expense.getAmount()));
+                write.write(expense.getID() + " " + formattedDate + " " + expense.getDescription() + " " + expense.getAmount());
+                write.newLine();
             }
+            
         } catch (IOException e) {
             System.out.println("Error in saving expense: " + e.getMessage());
         }
@@ -34,13 +59,23 @@ public class ExpenseManager {
         int id = expenses.size() + 1;
         Expense expense = new Expense(id, description, amount);
         expenses.add(expense);
-
+        saveExpenses();
         System.out.println("Expense " + expense.getID() + " added");
 
     }
 
     public void deleteExpense(int id) {
-
+        for(int i = 0; i < expenses.size(); i++){
+            if(expenses.get(i).getID() == id){
+                expenses.remove(i);
+                saveExpenses();
+                System.out.println("Expense " + id + " has been deleted");
+                
+            }
+            else{
+                System.out.println("Expense " + id );
+            }
+        }
     }
 
     public void editExpense(int id, String newDescription, double newAmount) {
@@ -48,6 +83,18 @@ public class ExpenseManager {
     }
 
     public void listExpense() {
+        System.out.println("ID - Date - Description - Amount");
+        for(Expense expense : expenses){
+            System.out.println(expense);
+        }
+    }
 
+    public void summary(){
+        double total = 0;
+
+        for(Expense expense : expenses){
+            total += expense.getAmount();
+        }
+        System.out.println("Total expense: " + total);
     }
 }
