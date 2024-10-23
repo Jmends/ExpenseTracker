@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -12,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 public class ExpenseManager {
     private List<Expense> expenses;
-    private static final String FILE_NAME = "Expenses.txt";
+    private static final String FILE_NAME = "C:\\Users\\jonat\\Desktop\\ExpenseTracker\\Expenses.txt";
 
     public ExpenseManager() {
         expenses = new ArrayList<>();
@@ -21,16 +22,29 @@ public class ExpenseManager {
 
     public void loadExpenses() {
         DateTimeFormatter dateformatter = DateTimeFormatter.ofPattern("dd-MM-yy");
-        try (BufferedReader read = new BufferedReader(new FileReader("expenses.txt"))) {
+        try (BufferedReader read = new BufferedReader(new FileReader(FILE_NAME))) {
             if (Files.exists(Paths.get(FILE_NAME))) {
                 String line;
                 while ((line = read.readLine()) != null) {
-                    String[] data = line.split(",");
-                    int id = Integer.parseInt(data[0]);
-                    LocalDate date = LocalDate.parse(data[1], dateformatter);
-                    String description = data[2];
-                    double amount = Double.parseDouble(data[3]);
-                    expenses.add(new Expense(id, date, description, amount));
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
+
+                    String[] data = line.split(" ");
+                    if (data.length < 4) {
+                        System.out.println("Skipping malformed line: " + line);
+
+                    }
+                    try {
+                        int id = Integer.parseInt(data[0]);
+                        LocalDate date = LocalDate.parse(data[1], dateformatter);
+                        String description = data[2];
+                        double amount = Double.parseDouble(data[3]);
+                        expenses.add(new Expense(id, date, description, amount));
+
+                    } catch (NumberFormatException e) {
+                        System.out.println(e.getMessage());
+                    }
 
                 }
 
@@ -57,7 +71,7 @@ public class ExpenseManager {
     }
 
     public void addExpense(double amount, String description) {
-        int id = expenses.size() + 1;
+        int id = generateUniqueID();
         Expense expense = new Expense(id, description, amount);
         expenses.add(expense);
         saveExpenses();
@@ -65,8 +79,28 @@ public class ExpenseManager {
 
     }
 
+    private int generateUniqueID() {
+        Random random = new Random();
+        int id;
+        do {
+            id = random.nextInt(1000);
+        } while (idExists(id));
+        return id;
+
+    }
+
+    private boolean idExists(int id) {
+        for(Expense expense : expenses){
+            if(expense.getID() == id){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void deleteExpense(int id) {
         boolean expenseFound = false;
+        
 
         for (int i = 0; i < expenses.size(); i++) {
             if (expenses.get(i).getID() == id) {
@@ -76,10 +110,10 @@ public class ExpenseManager {
                 expenseFound = true;
                 break;
 
-            } 
-            
+            }
+
         }
-        if(!expenseFound){
+        if (!expenseFound) {
             System.out.println("Expense " + id + " not found");
         }
     }
@@ -95,10 +129,10 @@ public class ExpenseManager {
                 System.out.println("Expense " + id + " has been edited");
                 expenseFound = true;
                 break;
-            } 
-           
+            }
+
         }
-        if(!expenseFound){
+        if (!expenseFound) {
             System.out.println("Expense " + id + " not found");
         }
     }
