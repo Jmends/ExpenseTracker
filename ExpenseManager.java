@@ -90,8 +90,8 @@ public class ExpenseManager {
     }
 
     private boolean idExists(int id) {
-        for(Expense expense : expenses){
-            if(expense.getID() == id){
+        for (Expense expense : expenses) {
+            if (expense.getID() == id) {
                 return true;
             }
         }
@@ -100,7 +100,6 @@ public class ExpenseManager {
 
     public void deleteExpense(int id) {
         boolean expenseFound = false;
-        
 
         for (int i = 0; i < expenses.size(); i++) {
             if (expenses.get(i).getID() == id) {
