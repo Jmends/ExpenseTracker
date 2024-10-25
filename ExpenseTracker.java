@@ -60,5 +60,6 @@ public class ExpenseTracker {
             default:
                 break;
         }
+        scan.close();
     }
 }
